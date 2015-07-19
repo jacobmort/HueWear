@@ -7,9 +7,13 @@
               tools:context=".MainActivity"
               tools:deviceIds="wear_square">
 
-    <TextView
-        android:id="@+id/text"
+    <Button
+        android:id="@+id/buttonRand"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/hello_square"/>
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:text="@string/btn_random" android:paddingLeft="10dp" android:paddingRight="10dp"
+        android:onClick="onButtonClicked" />
+
 </LinearLayout>
