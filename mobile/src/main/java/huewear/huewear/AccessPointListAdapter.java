@@ -19,7 +19,7 @@ import java.util.List;
  */
 public class AccessPointListAdapter extends BaseAdapter {
     private LayoutInflater mInflater;
-    private List<PHAccessPoint> accessPoints;
+    private List<PHAccessPointParcelable> accessPoints;
 
     /**
      * View holder class for access point list.
@@ -37,7 +37,7 @@ public class AccessPointListAdapter extends BaseAdapter {
      * @param context           the Context object.
      * @param accessPoints      an array list of {@link PHAccessPoint} object to display.
      */
-    public AccessPointListAdapter(Context context, List<PHAccessPoint> accessPoints) {
+    public AccessPointListAdapter(Context context, List<PHAccessPointParcelable> accessPoints) {
         // Cache the LayoutInflate to avoid asking for a new one each time.
         mInflater = LayoutInflater.from(context);
         this.accessPoints = accessPoints;
@@ -112,7 +112,7 @@ public class AccessPointListAdapter extends BaseAdapter {
      * 
      * @param accessPoints      An array list of {@link PHAccessPoint} objects.
      */
-    public void updateData(List<PHAccessPoint> accessPoints) {
+    public void updateData(List<PHAccessPointParcelable> accessPoints) {
         this.accessPoints = accessPoints;
         notifyDataSetChanged();
     }
