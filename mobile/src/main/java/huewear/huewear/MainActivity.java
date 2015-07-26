@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
 	private BroadcastReceiver mMessageReceiver;
 	private boolean lastSearchWasIPScan = false;
 	private boolean bridgeConnected = false;
+	private HueSharedPreferences prefs;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
 		setContentView(R.layout.activity_main);
 		bridgeFragment = new BridgeActivityFragment();
 		connectedFragment = new ConnectedActivityFragment();
+
 		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 		transaction.add(R.id.container, bridgeFragment, "first");
 		transaction.addToBackStack(null);
@@ -36,8 +38,11 @@ public class MainActivity extends AppCompatActivity {
 		mMessageReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
+				prefs = HueSharedPreferences.getInstance(context.getApplicationContext());
+				prefs.setLastConnectedIPAddress(intent.getStringExtra(HueService.CONNECT_IP));
+				bridgeFragment.hideSpinner();
 				FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-				transaction.add(R.id.container, connectedFragment, "first");
+				transaction.replace(R.id.container, connectedFragment, "first");
 				transaction.addToBackStack(null);
 				transaction.commit();
 			}

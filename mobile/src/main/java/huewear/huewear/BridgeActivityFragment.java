@@ -50,7 +50,7 @@ public class BridgeActivityFragment extends Fragment implements AdapterView.OnIt
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
-			//hideSpinner();
+			hideSpinner();
 			if (action.equals(HueService.CONNECT_AUTH)){
 				Toast.makeText(getActivity(), R.string.press_pushlink_button, Toast.LENGTH_SHORT).show();
 			}else {

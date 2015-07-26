@@ -10,16 +10,6 @@
     android:id="@+id/linear1"
     android:minWidth="300dp" >
 
-    <ProgressBar
-        android:id="@+id/scan_progress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        style="@android:style/Widget.ProgressBar.Large"
-
-        android:layout_marginRight="5dp" />
-
     <ListView
         android:id="@+id/bridge_list"
         android:layout_width="fill_parent"

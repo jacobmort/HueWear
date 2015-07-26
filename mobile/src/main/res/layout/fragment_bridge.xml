@@ -16,7 +16,16 @@
                       android:theme="@android:style/Theme.Dialog"
                       android:id="@+id/linear1"
                       android:minWidth="300dp" >
-
+            <ProgressBar
+                android:id="@+id/scan_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                style="@android:style/Widget.ProgressBar.Large"
+                android:visibility="gone"
+                android:layout_gravity="center"
+                android:layout_marginRight="5dp" />
             <TextView
                 android:id="@+id/empty_list_view"
                 android:layout_width="fill_parent"

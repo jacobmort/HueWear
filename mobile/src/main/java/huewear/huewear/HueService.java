@@ -46,6 +46,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 	public static final String POINTS_FOUND = "points_found";
 	public static final String LIGHT_SUCCESS = "light.success";
 	public static final String CONNECT_SUCCESS = "connect.success";
+	public static final String CONNECT_IP = "connect.success.ip";
 	public static final String CONNECT_AUTH = "connect.authrequired";
 	public static final String DISCONNECT = "disconnect";
 	public static final String ERROR = "error";
@@ -210,6 +211,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		phHueSDK.enableHeartbeat(b, PHHueSDK.HB_INTERVAL);
 		phHueSDK.getLastHeartbeat().put(b.getResourceCache().getBridgeConfiguration().getIpAddress(), System.currentTimeMillis());
 		Intent intent = new Intent(CONNECT_SUCCESS);
+		intent.putExtra(CONNECT_IP, b.getResourceCache().getBridgeConfiguration().getIpAddress());
 		manager.sendBroadcast(intent);
 		stopServices(connectIds);
 	}
