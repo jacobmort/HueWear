@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -15,7 +16,7 @@ import com.google.android.gms.wearable.Wearable;
 
 public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 	GoogleApiClient mGoogleApiClient;
-	public static final String PATH_NOTIFICAITON_MESSAGE = "CHANGE_LIGHTS";
+	public static final String PATH_NOTIFICAITON_MESSAGE = "RANDOM_LIGHTS";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -76,8 +77,10 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 						MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), PATH_NOTIFICAITON_MESSAGE, "Hello World".getBytes()).await();
 						if(!result.getStatus().isSuccess()){
 							Log.e("test", "error");
+							//showToast("RANDOM error");
 						} else {
 							Log.i("test", "success!! sent to: " + node.getDisplayName());
+							//showToast("RANDOM SENT");
 						}
 					}
 				}
@@ -87,4 +90,15 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 			Log.e("test", "not connected");
 		}
 	}
+	public void showToast(final String toast)
+	{
+		runOnUiThread(new Runnable() {
+			public void run()
+			{
+				Toast.makeText(MainActivity.this, toast, Toast.LENGTH_SHORT).show();
+			}
+		});
+	}
 }
+
+

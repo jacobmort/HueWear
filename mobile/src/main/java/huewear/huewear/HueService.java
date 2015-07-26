@@ -163,7 +163,6 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		if (!phHueSDK.isAccessPointConnected(lastAccessPoint)) {
 			phHueSDK.connect(lastAccessPoint);
 		}
-		stopServices(connectIds);
 	}
 
 	public void disconnect(){
