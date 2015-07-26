@@ -10,7 +10,9 @@ import java.util.List;
 
 /**
  * Created by jacob on 7/19/15.
+ * makes this datastructure parcelable so it can be passed around
  */
+
 public class PHAccessPointParcelable extends PHAccessPoint implements Parcelable {
 	public PHAccessPointParcelable(PHAccessPoint point){
 		super(point.getIpAddress(), point.getUsername(), point.getMacAddress());

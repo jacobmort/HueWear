@@ -11,7 +11,6 @@ import com.google.android.gms.wearable.WearableListenerService;
  * Created by jacob on 7/18/15.
  */
 public class MessageListenerService extends WearableListenerService {
-	public static final String RANDOM_LIGHTS = "RANDOM_LIGHTS";
 	private static final String TAG = "MessageListener";
 
 	@Override
@@ -27,9 +26,9 @@ public class MessageListenerService extends WearableListenerService {
 	@Override
 	public void onMessageReceived(MessageEvent messageEvent) {
 		System.out.println("service watch message1");
-		if (messageEvent.getPath().equals(RANDOM_LIGHTS)) {
+		if (messageEvent.getPath().equals("randomLights")) {
 			Intent serviceIntent = new Intent(MessageListenerService.this, HueService.class);
-			serviceIntent.putExtra(HueService.COMMAND, "randomLights");
+			serviceIntent.setAction(HueService.ACTION_RANDOM);
 			startService(serviceIntent);
 
 		}

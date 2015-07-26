@@ -29,7 +29,7 @@ public class ConnectedActivityFragment extends Fragment {
 			@Override
 			public void onClick(View v) {
 				Intent serviceIntent = new Intent(getActivity(), HueService.class);
-				serviceIntent.putExtra(HueService.COMMAND, "randomLights");
+				serviceIntent.setAction(HueService.ACTION_RANDOM);
 				getActivity().startService(serviceIntent);
 			}
 

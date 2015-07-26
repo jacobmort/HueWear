@@ -33,15 +33,25 @@ import java.util.Random;
 /**
  * Created by jacob on 7/19/15.
  */
+
 public class HueService extends Service implements PHSDKListener, PHLightListener {
 	private static final String TAG = "HueService";
 	private static final int MAX_HUE=65535;
-	public static final String POINTS_FOUND = "HueService.points_found";
-	public static final String COMMAND = "HueService.command";
-	public static final String LIGHT_SUCCESS = "HueService.light.success";
-	public static final String CONNECT_SUCCESS = "HueService.connect.success";
-	public static final String ERROR = "HueService.error";
-	public static final String ACCESS_POINT_EXTRA = "HueService.access_point_extra";
+
+	public static final String ACTION_CONNECT = "connect";
+	public static final String ACTION_DISCONNECT = "disconnect";
+	public static final String ACTION_SEARCH = "doBridgeSearch";
+	public static final String ACTION_RANDOM = "randomLights";
+
+	public static final String POINTS_FOUND = "points_found";
+	public static final String LIGHT_SUCCESS = "light.success";
+	public static final String CONNECT_SUCCESS = "connect.success";
+	public static final String CONNECT_AUTH = "connect.authrequired";
+	public static final String DISCONNECT = "disconnect";
+	public static final String ERROR = "error";
+	public static final String ACCESS_POINT_EXTRA = "access_point_extra";
+
+	private static final String COMMAND = "HueService.command";
 
 	private List<Integer> allIds; //some Hue callbacks can't tell which it was called from- stop all
 	private List<Integer> randomLightIds;
@@ -67,20 +77,20 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 			String command = b.getString(COMMAND);
 			allIds.add(msg.arg1);
 			switch(command){
-				case "randomLights":
+				case ACTION_RANDOM:
 					randomLightIds.add(msg.arg1);
 					randomLights();
 					break;
-				case "doBridgeSearch":
+				case ACTION_SEARCH:
 					searchIds.add(msg.arg1);
 					doBridgeSearch();
 					break;
-				case "connect":
+				case ACTION_CONNECT:
 					connectIds.add(msg.arg1);
 					PHAccessPoint point = b.getParcelable(ACCESS_POINT_EXTRA);
 					connect(point);
 					break;
-				case "disconnect":
+				case ACTION_DISCONNECT:
 					disconnect();
 					break;
 				default:
@@ -122,7 +132,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		// start ID so we know which request we're stopping when we finish the job
 
 		Bundle b = new Bundle();
-		b.putString(COMMAND, intent.getStringExtra(COMMAND));
+		b.putString(COMMAND, intent.getAction());
 		b.putParcelable(ACCESS_POINT_EXTRA, intent.getParcelableExtra(ACCESS_POINT_EXTRA));
 		Message msg = mServiceHandler.obtainMessage();
 		msg.arg1 = startId;
@@ -130,7 +140,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 
 		mServiceHandler.sendMessage(msg);
 		// If we get killed, after returning from here, restart
-		return START_STICKY;
+		return START_REDELIVER_INTENT;
 	}
 
 	@Override
@@ -171,6 +181,8 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 			phHueSDK.disableHeartbeat(phHueSDK.getSelectedBridge());
 			phHueSDK.disconnect(phHueSDK.getSelectedBridge());
 		}
+		Intent intent = new Intent(DISCONNECT);
+		manager.sendBroadcast(intent);
 	}
 
 	//PHSDKListener methods
@@ -206,6 +218,8 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 	public void onAuthenticationRequired(PHAccessPoint accessPoint) {
 		Log.w(TAG, "Authentication Required.");
 		phHueSDK.startPushlinkAuthentication(accessPoint);
+		Intent intent = new Intent(CONNECT_AUTH);
+		manager.sendBroadcast(intent);
 	}
 
 	@Override

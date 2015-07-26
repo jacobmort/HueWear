@@ -12,17 +12,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-import com.philips.lighting.hue.sdk.PHAccessPoint;
-
 public class MainActivity extends AppCompatActivity {
 
 	public static final String TAG = "MainActivity";
 	private TextView mTextView;
-	private HueSharedPreferences prefs;
 	private BridgeActivityFragment bridgeFragment;
 	private ConnectedActivityFragment connectedFragment;
 	private BroadcastReceiver mMessageReceiver;
 	private boolean lastSearchWasIPScan = false;
+	private boolean bridgeConnected = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -44,40 +42,23 @@ public class MainActivity extends AppCompatActivity {
 				transaction.commit();
 			}
 		};
-
-		LocalBroadcastManager.getInstance(this).registerReceiver(
-				mMessageReceiver, new IntentFilter(HueService.CONNECT_SUCCESS));
-		setupHue();
 	}
 
-	private void setupHue() {
-		// Try to automatically connect to the last known bridge.  For first time use this will be empty so a bridge search is automatically started.
-		prefs = HueSharedPreferences.getInstance(getApplicationContext());
-		String lastIpAddress   = prefs.getLastConnectedIPAddress();
-		String lastUsername    = prefs.getUsername();
+	@Override
+	public void onPause(){
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+		super.onPause();
+	}
 
-		// Automatically try to connect to the last connected IP Address.  For multiple bridge support a different implementation is required.
-		if (lastIpAddress !=null && !lastIpAddress.equals("")) {
-			PHAccessPoint lastAccessPoint = new PHAccessPoint();
-			lastAccessPoint.setIpAddress(lastIpAddress);
-			lastAccessPoint.setUsername(lastUsername);
-
-			Intent serviceIntent = new Intent(this, HueService.class);
-			serviceIntent.putExtra(HueService.COMMAND, "connect");
-			serviceIntent.putExtra(HueService.ACCESS_POINT_EXTRA, new PHAccessPointParcelable(lastAccessPoint));
-			startService(serviceIntent);
-		}
-		else {  // First time use, so perform a bridge search.
-			Intent serviceIntent = new Intent(this, HueService.class);
-			bridgeFragment.showSpinner();
-			serviceIntent.putExtra(HueService.COMMAND, "doBridgeSearch");
-			startService(serviceIntent);
-		}
+	@Override
+	public void onResume(){
+		LocalBroadcastManager.getInstance(this).registerReceiver(
+				mMessageReceiver, new IntentFilter(HueService.CONNECT_SUCCESS));
+		super.onResume();
 	}
 
 	@Override
 	public void onDestroy(){
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
 		super.onDestroy();
 	}
 
@@ -92,9 +73,9 @@ public class MainActivity extends AppCompatActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.find_new_bridge:
-				Intent serviceIntent = new Intent(this, HueService.class);
 				bridgeFragment.showSpinner();
-				serviceIntent.putExtra(HueService.COMMAND, "doBridgeSearch");
+				Intent serviceIntent = new Intent(this, HueService.class);
+				serviceIntent.setAction(HueService.ACTION_SEARCH);
 				startService(serviceIntent);
 				break;
 		}

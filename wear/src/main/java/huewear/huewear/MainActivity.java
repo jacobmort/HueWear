@@ -16,7 +16,7 @@ import com.google.android.gms.wearable.Wearable;
 
 public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 	GoogleApiClient mGoogleApiClient;
-	public static final String PATH_NOTIFICAITON_MESSAGE = "RANDOM_LIGHTS";
+	public static final String PATH_NOTIFICAITON_MESSAGE = "randomLights";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
