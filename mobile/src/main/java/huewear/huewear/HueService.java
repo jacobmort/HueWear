@@ -55,10 +55,11 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 
 	private static final String COMMAND = "HueService.command";
 
-	private List<Integer> allIds; //some Hue callbacks can't tell which it was called from- stop all
-	private List<Integer> lightControlIds;
-	private List<Integer> searchIds;
-	private List<Integer> connectIds;
+	// These store IDs to running services so they can be stopped when their callback runs
+	private List<Integer> mAllIds; //some Hue callbacks can't tell which it was called from- stop all
+	private List<Integer> mLightControlIds;
+	private List<Integer> mSearchIds;
+	private List<Integer> mConnectIds;
 
 	private boolean lastSearchWasIPScan = false;
 	private PHHueSDK phHueSDK;
@@ -77,18 +78,18 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		public void handleMessage(Message msg) {
 			Bundle b = msg.getData();
 			String command = b.getString(COMMAND);
-			allIds.add(msg.arg1);
+			mAllIds.add(msg.arg1);
 			switch(command){
 				case ACTION_RANDOM:
-					lightControlIds.add(msg.arg1);
+					mLightControlIds.add(msg.arg1);
 					randomLights();
 					break;
 				case ACTION_SEARCH:
-					searchIds.add(msg.arg1);
+					mSearchIds.add(msg.arg1);
 					doBridgeSearch();
 					break;
 				case ACTION_CONNECT:
-					connectIds.add(msg.arg1);
+					mConnectIds.add(msg.arg1);
 					PHAccessPoint point = b.getParcelable(ACCESS_POINT_EXTRA);
 					connect(point);
 					break;
@@ -115,10 +116,10 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		mServiceLooper = thread.getLooper();
 		mServiceHandler = new ServiceHandler(mServiceLooper);
 
-		allIds = new ArrayList<Integer>();
-		lightControlIds = new ArrayList<Integer>();
-		searchIds = new ArrayList<Integer>();
-		connectIds = new ArrayList<Integer>();
+		mAllIds = new ArrayList<Integer>();
+		mLightControlIds = new ArrayList<Integer>();
+		mSearchIds = new ArrayList<Integer>();
+		mConnectIds = new ArrayList<Integer>();
 
 
 		phHueSDK = PHHueSDK.create();
@@ -201,7 +202,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 			intent.putParcelableArrayListExtra(POINTS_FOUND, PHAccessPointParcelable.convert(phHueSDK.getAccessPointsFound()));
 			manager.sendBroadcast(intent);
 		}
-		stopServices(searchIds);
+		stopServices(mSearchIds);
 	}
 
 	@Override
@@ -217,7 +218,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		Intent intent = new Intent(CONNECT_SUCCESS);
 		intent.putExtra(CONNECT_IP, b.getResourceCache().getBridgeConfiguration().getIpAddress());
 		manager.sendBroadcast(intent);
-		stopServices(connectIds);
+		stopServices(mConnectIds);
 	}
 
 	@Override
@@ -245,7 +246,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		if (!phHueSDK.getDisconnectedAccessPoint().contains(accessPoint)) {
 			phHueSDK.getDisconnectedAccessPoint().add(accessPoint);
 		}
-		stopServices(allIds);
+		stopServices(mAllIds);
 	}
 
 	@Override
@@ -275,7 +276,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 			intent.putExtra(ERROR, error);
 			manager.sendBroadcast(intent);
 		}
-		stopServices(allIds);
+		stopServices(mAllIds);
 	}
 
 	@Override
@@ -286,7 +287,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		Intent intent = new Intent(ERROR);
 		intent.putExtra(ERROR, "ParsingError");
 		manager.sendBroadcast(intent);
-		stopServices(allIds);
+		stopServices(mAllIds);
 	}
 
 	public void randomLights() {
@@ -304,7 +305,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 			bridge.updateLightState(light, lightState, this);
 			//  bridge.updateLightState(light, lightState);   // If no bridge response is required then use this simpler form.
 		}
-		stopServices(lightControlIds);
+		stopServices(mLightControlIds);
 	}
 
 	public void lightsOff() {
@@ -321,7 +322,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 			bridge.updateLightState(light, lightState, this);
 			//  bridge.updateLightState(light, lightState);   // If no bridge response is required then use this simpler form.
 		}
-		stopServices(lightControlIds);
+		stopServices(mLightControlIds);
 	}
 
 	//PHLightListener methods
@@ -329,13 +330,13 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 	public void onSuccess() {
 		Intent intent = new Intent(LIGHT_SUCCESS);
 		manager.sendBroadcast(intent);
-		stopServices(allIds);
+		stopServices(mAllIds);
 	}
 
 	@Override
 	public void onStateUpdate(Map<String, String> arg0, List<PHHueError> arg1) {
 		Log.w(TAG, "Light has updated");
-		stopServices(lightControlIds);
+		stopServices(mLightControlIds);
 	}
 
 	@Override

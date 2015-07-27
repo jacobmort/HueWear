@@ -10,39 +10,35 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
 	public static final String TAG = "MainActivity";
-	private TextView mTextView;
-	private BridgeActivityFragment bridgeFragment;
-	private ConnectedActivityFragment connectedFragment;
+	private BridgeActivityFragment mBridgeFragment;
+	private ConnectedActivityFragment mConnectedFragment;
 	private BroadcastReceiver mMessageReceiver;
-	private boolean lastSearchWasIPScan = false;
-	private boolean bridgeConnected = false;
-	private HueSharedPreferences prefs;
+	private HueSharedPreferences mPrefs;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		bridgeFragment = new BridgeActivityFragment();
-		connectedFragment = new ConnectedActivityFragment();
+		mBridgeFragment = new BridgeActivityFragment();
+		mConnectedFragment = new ConnectedActivityFragment();
 
 		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-		transaction.add(R.id.container, bridgeFragment, "first");
+		transaction.add(R.id.container, mBridgeFragment, "first");
 		transaction.addToBackStack(null);
 		transaction.commit();
 
 		mMessageReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				prefs = HueSharedPreferences.getInstance(context.getApplicationContext());
-				prefs.setLastConnectedIPAddress(intent.getStringExtra(HueService.CONNECT_IP));
-				bridgeFragment.hideSpinner();
+				mPrefs = HueSharedPreferences.getInstance(context.getApplicationContext());
+				mPrefs.setLastConnectedIPAddress(intent.getStringExtra(HueService.CONNECT_IP));
+				mBridgeFragment.hideSpinner();
 				FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-				transaction.replace(R.id.container, connectedFragment, "first");
+				transaction.replace(R.id.container, mConnectedFragment, "first");
 				transaction.addToBackStack(null);
 				transaction.commit();
 			}
@@ -78,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.find_new_bridge:
-				bridgeFragment.showSpinner();
+				mBridgeFragment.showSpinner();
 				Intent serviceIntent = new Intent(this, HueService.class);
 				serviceIntent.setAction(HueService.ACTION_SEARCH);
 				startService(serviceIntent);

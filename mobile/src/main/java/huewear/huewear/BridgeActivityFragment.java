@@ -22,10 +22,8 @@ import java.util.ArrayList;
 
 public class BridgeActivityFragment extends Fragment implements AdapterView.OnItemClickListener {
 	public static final String TAG = "BridgeActivityFragment";
-	private AccessPointListAdapter adapter;
-	private ProgressBar scanProgressBar;
-	private ListView accessPointList;
-	private HueSharedPreferences prefs;
+	private AccessPointListAdapter mAdapter;
+	private ProgressBar mScanProgressBar;
 
 	private boolean connected = false;
 
@@ -37,11 +35,11 @@ public class BridgeActivityFragment extends Fragment implements AdapterView.OnIt
 							 Bundle savedInstanceState) {
 
 		View view =  inflater.inflate(R.layout.fragment_bridge, container, false);
-		accessPointList = (ListView) view.findViewById(R.id.bridge_list);
+		ListView accessPointList = (ListView) view.findViewById(R.id.bridge_list);
 		accessPointList.setOnItemClickListener(this);
-		adapter = new AccessPointListAdapter(getActivity().getApplicationContext(), new ArrayList<PHAccessPointParcelable>());
-		accessPointList.setAdapter(adapter);
-		scanProgressBar = (ProgressBar) view.findViewById(R.id.scan_progress);
+		mAdapter = new AccessPointListAdapter(getActivity().getApplicationContext(), new ArrayList<PHAccessPointParcelable>());
+		accessPointList.setAdapter(mAdapter);
+		mScanProgressBar = (ProgressBar) view.findViewById(R.id.scan_progress);
 		setupHue();
 		return view;
 	}
@@ -55,14 +53,14 @@ public class BridgeActivityFragment extends Fragment implements AdapterView.OnIt
 				Toast.makeText(getActivity(), R.string.press_pushlink_button, Toast.LENGTH_SHORT).show();
 			}else {
 				ArrayList<PHAccessPointParcelable> points = intent.getParcelableArrayListExtra(HueService.POINTS_FOUND);
-				adapter.updateData(points);
+				mAdapter.updateData(points);
 			}
 		}
 	};
 
 	private void setupHue() {
 		// Try to automatically connect to the last known bridge.  For first time use this will be empty so a bridge search is automatically started.
-		prefs = HueSharedPreferences.getInstance(getActivity().getApplicationContext());
+		HueSharedPreferences prefs = HueSharedPreferences.getInstance(getActivity().getApplicationContext());
 		String lastIpAddress   = prefs.getLastConnectedIPAddress();
 		String lastUsername    = prefs.getUsername();
 
@@ -101,21 +99,21 @@ public class BridgeActivityFragment extends Fragment implements AdapterView.OnIt
 	}
 
 	public void hideSpinner(){
-		if (scanProgressBar != null){
-			scanProgressBar.setVisibility(View.GONE);
+		if (mScanProgressBar != null){
+			mScanProgressBar.setVisibility(View.GONE);
 		}
 	}
 
 	public void showSpinner(){
-		if (scanProgressBar != null){
-			scanProgressBar.setVisibility(View.VISIBLE);
+		if (mScanProgressBar != null){
+			mScanProgressBar.setVisibility(View.VISIBLE);
 		}
 	}
 
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 		HueSharedPreferences prefs = HueSharedPreferences.getInstance(getActivity().getApplicationContext());
-		PHAccessPointParcelable accessPoint = (PHAccessPointParcelable) adapter.getItem(position);
+		PHAccessPointParcelable accessPoint = (PHAccessPointParcelable) mAdapter.getItem(position);
 		accessPoint.setUsername(prefs.getUsername());
 
 		if (connected) {
