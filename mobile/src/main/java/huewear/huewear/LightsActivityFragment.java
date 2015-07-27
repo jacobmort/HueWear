@@ -8,13 +8,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import huewear.services.HueService;
+
 /**
  * Created by jacob on 7/18/15.
  */
-public class ConnectedActivityFragment extends Fragment {
-	public static final String TAG = "ConnectedActivityFragment";
+public class LightsActivityFragment extends Fragment {
+	public static final String TAG = "LightsActivityFragment";
 
-	public ConnectedActivityFragment() {
+	public LightsActivityFragment() {
 	}
 
 	@Override

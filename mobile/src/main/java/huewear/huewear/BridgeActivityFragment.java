@@ -19,6 +19,11 @@ import com.philips.lighting.hue.sdk.PHAccessPoint;
 
 import java.util.ArrayList;
 
+import huewear.models.AccessPointListAdapter;
+import huewear.models.HueSharedPreferences;
+import huewear.models.PHAccessPointParcelable;
+import huewear.services.HueService;
+
 
 public class BridgeActivityFragment extends Fragment implements AdapterView.OnItemClickListener {
 	public static final String TAG = "BridgeActivityFragment";

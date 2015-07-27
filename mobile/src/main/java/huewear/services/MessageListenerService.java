@@ -1,4 +1,4 @@
-package huewear.huewear;
+package huewear.services;
 
 import android.content.Intent;
 import android.util.Log;

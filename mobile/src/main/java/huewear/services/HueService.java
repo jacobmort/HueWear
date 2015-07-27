@@ -1,4 +1,4 @@
-package huewear.huewear;
+package huewear.services;
 
 import android.app.Service;
 import android.content.Intent;
@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
+import huewear.models.PHAccessPointParcelable;
 
 /**
  * Created by jacob on 7/19/15.

@@ -11,11 +11,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import huewear.models.HueSharedPreferences;
+import huewear.services.HueService;
+
 public class MainActivity extends AppCompatActivity {
 
 	public static final String TAG = "MainActivity";
 	private BridgeActivityFragment mBridgeFragment;
-	private ConnectedActivityFragment mConnectedFragment;
+	private LightsActivityFragment mConnectedFragment;
 	private BroadcastReceiver mMessageReceiver;
 	private HueSharedPreferences mPrefs;
 
@@ -24,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		mBridgeFragment = new BridgeActivityFragment();
-		mConnectedFragment = new ConnectedActivityFragment();
+		mConnectedFragment = new LightsActivityFragment();
 
 		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 		transaction.add(R.id.container, mBridgeFragment, "first");

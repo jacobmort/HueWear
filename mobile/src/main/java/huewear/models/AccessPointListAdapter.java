@@ -1,4 +1,4 @@
-package huewear.huewear;
+package huewear.models;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -11,6 +11,8 @@ import android.widget.TextView;
 import com.philips.lighting.hue.sdk.PHAccessPoint;
 
 import java.util.List;
+
+import huewear.huewear.R;
 
 /**
  * This class provides adapter view for a list of Found Bridges.

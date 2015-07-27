@@ -1,4 +1,4 @@
-package huewear.huewear;
+package huewear.models;
 
 import android.os.Parcel;
 import android.os.Parcelable;
