@@ -14,9 +14,10 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
+import huewear.common.MessagePaths;
+
 public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
-	GoogleApiClient mGoogleApiClient;
-	public static final String PATH_NOTIFICAITON_MESSAGE = "randomLights";
+	private GoogleApiClient mGoogleApiClient;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -67,14 +68,23 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		Log.e("test", "Failed to connect to Google API Client");
 	}
 
-	public void onButtonClicked(View target) {
+	public void onRandomClicked(View target){
+		this.sendMessage(MessagePaths.LIGHTS_RANDOM);
+	}
+
+	public void onOffClicked(View target){
+		this.sendMessage(MessagePaths.LIGHTS_OFF);
+	}
+
+	public void sendMessage(String path){
 		if(mGoogleApiClient.isConnected()) {
+			final String pathLocation = path;
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
 					NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
 					for(Node node : nodes.getNodes()) {
-						MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), PATH_NOTIFICAITON_MESSAGE, "Hello World".getBytes()).await();
+						MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), pathLocation, "Hello World".getBytes()).await();
 						if(!result.getStatus().isSuccess()){
 							Log.e("test", "error");
 							//showToast("RANDOM error");

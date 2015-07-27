@@ -42,6 +42,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 	public static final String ACTION_DISCONNECT = "disconnect";
 	public static final String ACTION_SEARCH = "doBridgeSearch";
 	public static final String ACTION_RANDOM = "randomLights";
+	public static final String ACTION_OFF = "lightsOff";
 
 	public static final String POINTS_FOUND = "points_found";
 	public static final String LIGHT_SUCCESS = "light.success";
@@ -55,7 +56,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 	private static final String COMMAND = "HueService.command";
 
 	private List<Integer> allIds; //some Hue callbacks can't tell which it was called from- stop all
-	private List<Integer> randomLightIds;
+	private List<Integer> lightControlIds;
 	private List<Integer> searchIds;
 	private List<Integer> connectIds;
 
@@ -79,7 +80,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 			allIds.add(msg.arg1);
 			switch(command){
 				case ACTION_RANDOM:
-					randomLightIds.add(msg.arg1);
+					lightControlIds.add(msg.arg1);
 					randomLights();
 					break;
 				case ACTION_SEARCH:
@@ -93,6 +94,9 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 					break;
 				case ACTION_DISCONNECT:
 					disconnect();
+					break;
+				case ACTION_OFF:
+					lightsOff();
 					break;
 				default:
 					Log.i(TAG, "non-matching command"+command);
@@ -112,7 +116,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		mServiceHandler = new ServiceHandler(mServiceLooper);
 
 		allIds = new ArrayList<Integer>();
-		randomLightIds = new ArrayList<Integer>();
+		lightControlIds = new ArrayList<Integer>();
 		searchIds = new ArrayList<Integer>();
 		connectIds = new ArrayList<Integer>();
 
@@ -197,7 +201,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 			intent.putParcelableArrayListExtra(POINTS_FOUND, PHAccessPointParcelable.convert(phHueSDK.getAccessPointsFound()));
 			manager.sendBroadcast(intent);
 		}
-		stopServices(randomLightIds);
+		stopServices(searchIds);
 	}
 
 	@Override
@@ -293,13 +297,31 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 
 		for (PHLight light : allLights) {
 			PHLightState lightState = new PHLightState();
+			lightState.setOn(true);
 			lightState.setHue(rand.nextInt(MAX_HUE));
 			// To validate your lightstate is valid (before sending to the bridge) you can use:
 			// String validState = lightState.validateState();
 			bridge.updateLightState(light, lightState, this);
 			//  bridge.updateLightState(light, lightState);   // If no bridge response is required then use this simpler form.
 		}
-		stopServices(randomLightIds);
+		stopServices(lightControlIds);
+	}
+
+	public void lightsOff() {
+		PHBridge bridge = phHueSDK.getSelectedBridge();
+
+		List<PHLight> allLights = bridge.getResourceCache().getAllLights();
+		Random rand = new Random();
+
+		for (PHLight light : allLights) {
+			PHLightState lightState = new PHLightState();
+			lightState.setOn(false);
+			// To validate your lightstate is valid (before sending to the bridge) you can use:
+			// String validState = lightState.validateState();
+			bridge.updateLightState(light, lightState, this);
+			//  bridge.updateLightState(light, lightState);   // If no bridge response is required then use this simpler form.
+		}
+		stopServices(lightControlIds);
 	}
 
 	//PHLightListener methods
@@ -313,7 +335,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 	@Override
 	public void onStateUpdate(Map<String, String> arg0, List<PHHueError> arg1) {
 		Log.w(TAG, "Light has updated");
-		stopServices(allIds);
+		stopServices(lightControlIds);
 	}
 
 	@Override
