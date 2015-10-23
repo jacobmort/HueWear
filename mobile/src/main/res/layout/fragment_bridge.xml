@@ -1,42 +1,94 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
-              android:paddingLeft="10dp"
-              android:paddingRight="10dp"
-              android:theme="@android:style/Theme.Dialog"
-              android:id="@+id/BridgeView"
-              android:minWidth="300dp" >
-    <ProgressBar
-        android:id="@+id/scan_progress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        style="@android:style/Widget.ProgressBar.Large"
-        android:visibility="gone"
-        android:layout_gravity="center"
-        android:layout_marginRight="5dp" />
-    <TextView
-        android:id="@+id/empty_list_view"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:text="@string/no_bridge"
-        />
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:id="@+id/BridgeFragment"
+    >
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="vertical"
+                  android:paddingLeft="10dp"
+                  android:paddingRight="10dp"
+                  android:theme="@android:style/Theme.Dialog"
+                  android:id="@+id/BridgeList"
+                  android:minWidth="300dp" >
+        <ProgressBar
+            android:id="@+id/scan_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            style="@android:style/Widget.ProgressBar.Large"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            android:layout_marginRight="5dp" />
+        <TextView
+            android:id="@+id/empty_list_view"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/no_bridge"
+            />
 
-    <ListView
-        android:id="@+id/bridge_list"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:cacheColorHint="#00000000"
-        android:focusable="true"
-        android:choiceMode="singleChoice"
-        android:dividerHeight="3sp"
-        android:layout_marginLeft="2dip"
-        android:layout_marginRight="2dip"
-        android:layout_marginTop="3dip" >
-    </ListView>
-</LinearLayout>
+        <ListView
+            android:id="@+id/bridge_list"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:cacheColorHint="#00000000"
+            android:focusable="true"
+            android:choiceMode="singleChoice"
+            android:dividerHeight="3sp"
+            android:layout_marginLeft="2dip"
+            android:layout_marginRight="2dip"
+            android:layout_marginTop="3dip" >
+        </ListView>
+    </LinearLayout>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:id="@+id/BridgeConnect"
+                  android:layout_width="match_parent"
+                  android:layout_height="fill_parent"
+                  android:background="#FFFFFFFF"
+                  android:orientation="vertical"
+                  android:visibility="invisible">
+
+        <TextView
+            android:id="@+id/descriptionTextview"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:text="@string/press_pushlink_button"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="#FF000000"
+            android:layout_margin="10dp" />
+
+        <ImageView
+            android:id="@+id/imageView1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:src="@drawable/press_smartbridge"
+            android:contentDescription="@string/press_pushlink_button"
+            android:gravity="center"
+            android:layout_weight="1"
+            />
+
+        <ProgressBar
+            android:id="@+id/countdownPB"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:max="30"
+            android:layout_marginLeft="10dip"
+            android:layout_marginRight="10dip"
+            android:layout_marginTop="10dip"
+            android:layout_marginBottom="40dip"
+            />
+
+    </LinearLayout>
+
+</FrameLayout>

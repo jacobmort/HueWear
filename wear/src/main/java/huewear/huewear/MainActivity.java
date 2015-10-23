@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
 import android.view.View;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -16,15 +18,23 @@ import com.google.android.gms.wearable.Wearable;
 
 import huewear.common.MessagePaths;
 
-public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnSeekBarChangeListener {
 	private GoogleApiClient mGoogleApiClient;
+	private SeekBar mBrightnessBar;
+	private static final int MAX_BRIGHTNESS = 254;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
-
+		stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
+			@Override
+			public void onLayoutInflated(WatchViewStub stub) {
+				mBrightnessBar = (SeekBar) stub.findViewById(R.id.brightnessBar);
+				mBrightnessBar.setOnSeekBarChangeListener((OnSeekBarChangeListener)stub.getContext());
+			}
+		});
 		mGoogleApiClient = new GoogleApiClient.Builder(this)
 				.addApi(Wearable.API)
 				.addConnectionCallbacks(this)
@@ -32,12 +42,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 				.build();
 		mGoogleApiClient.connect();
 
-		stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
-			@Override
-			public void onLayoutInflated(WatchViewStub stub) {
-
-			}
-		});
 	}
 
 	@Override
@@ -68,23 +72,20 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		Log.e("test", "Failed to connect to Google API Client");
 	}
 
-	public void onRandomClicked(View target){
-		this.sendMessage(MessagePaths.LIGHTS_RANDOM);
-	}
-
-	public void onOffClicked(View target){
-		this.sendMessage(MessagePaths.LIGHTS_OFF);
-	}
-
 	public void sendMessage(String path){
+		sendMessage(path, "");
+	}
+
+	public void sendMessage(String path, String val){
 		if(mGoogleApiClient.isConnected()) {
 			final String pathLocation = path;
+			final String msgVal = val;
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
 					NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
 					for(Node node : nodes.getNodes()) {
-						MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), pathLocation, "Hello World".getBytes()).await();
+						MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), pathLocation, msgVal.getBytes()).await();
 						if(!result.getStatus().isSuccess()){
 							Log.e("test", "error");
 							//showToast("RANDOM error");
@@ -100,6 +101,34 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 			Log.e("test", "not connected");
 		}
 	}
+
+	public void onRandomClicked(View target){
+		this.sendMessage(MessagePaths.LIGHTS_RANDOM);
+	}
+
+	public void onOffClicked(View target){
+		this.sendMessage(MessagePaths.LIGHTS_OFF);
+	}
+
+	@Override
+	public void onProgressChanged(SeekBar seekBar, int progress,
+								  boolean fromUser) {
+	}
+
+	@Override
+	public void onStartTrackingTouch(SeekBar seekBar) {
+
+	}
+
+	@Override
+	public void onStopTrackingTouch(SeekBar seekBar) {
+		int progress = seekBar.getProgress();
+		Log.i("Brightness ", String.valueOf(progress));
+		int newVal = (int)(progress * .01 * MAX_BRIGHTNESS);
+		this.sendMessage(MessagePaths.LIGHTS_BRIGTHNESS, String.valueOf(newVal));
+	}
+
+
 	public void showToast(final String toast)
 	{
 		runOnUiThread(new Runnable() {

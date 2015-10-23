@@ -20,9 +20,13 @@
         android:id="@+id/buttonOff"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
         android:text="@string/btn_off" android:paddingLeft="10dp" android:paddingRight="10dp"
         android:onClick="onOffClicked" />
+
+    <SeekBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/brightnessBar" />
 
 </LinearLayout>

@@ -77,7 +77,10 @@ public class MainActivity extends AppCompatActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.find_new_bridge:
-				mBridgeFragment.showSpinner();
+				FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+				transaction.replace(R.id.container, mBridgeFragment, "first");
+				transaction.commit();
+				mBridgeFragment.showPushLinkView();
 				Intent serviceIntent = new Intent(this, HueService.class);
 				serviceIntent.setAction(HueService.ACTION_SEARCH);
 				startService(serviceIntent);

@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -29,6 +30,8 @@ public class BridgeActivityFragment extends Fragment implements AdapterView.OnIt
 	public static final String TAG = "BridgeActivityFragment";
 	private AccessPointListAdapter mAdapter;
 	private ProgressBar mScanProgressBar;
+	private LinearLayout mBridgeList;
+	private LinearLayout mLinkPrompt;
 
 	private boolean connected = false;
 
@@ -45,6 +48,8 @@ public class BridgeActivityFragment extends Fragment implements AdapterView.OnIt
 		mAdapter = new AccessPointListAdapter(getActivity().getApplicationContext(), new ArrayList<PHAccessPointParcelable>());
 		accessPointList.setAdapter(mAdapter);
 		mScanProgressBar = (ProgressBar) view.findViewById(R.id.scan_progress);
+		mBridgeList = (LinearLayout) view.findViewById(R.id.BridgeList);
+		mLinkPrompt = (LinearLayout) view.findViewById(R.id.BridgeConnect);
 		setupHue();
 		return view;
 	}
@@ -57,6 +62,8 @@ public class BridgeActivityFragment extends Fragment implements AdapterView.OnIt
 			if (action.equals(HueService.CONNECT_AUTH)){
 				Toast.makeText(getActivity(), R.string.press_pushlink_button, Toast.LENGTH_SHORT).show();
 			}else {
+				mLinkPrompt.setVisibility(View.INVISIBLE);
+				mBridgeList.setVisibility(View.VISIBLE);
 				ArrayList<PHAccessPointParcelable> points = intent.getParcelableArrayListExtra(HueService.POINTS_FOUND);
 				mAdapter.updateData(points);
 			}
@@ -82,6 +89,7 @@ public class BridgeActivityFragment extends Fragment implements AdapterView.OnIt
 			getActivity().startService(serviceIntent);
 		}
 		else {  // First time use, so perform a bridge search.
+			showPushLinkView();
 			Intent serviceIntent = new Intent(getActivity(), HueService.class);
 			serviceIntent.setAction(HueService.ACTION_SEARCH);
 			getActivity().startService(serviceIntent);
@@ -113,6 +121,11 @@ public class BridgeActivityFragment extends Fragment implements AdapterView.OnIt
 		if (mScanProgressBar != null){
 			mScanProgressBar.setVisibility(View.VISIBLE);
 		}
+	}
+
+	public void showPushLinkView(){
+		mLinkPrompt.setVisibility(View.VISIBLE);
+		mBridgeList.setVisibility(View.INVISIBLE);
 	}
 
 	@Override
