@@ -23,10 +23,28 @@
         android:layout_marginTop="20dp"
         android:text="@string/btn_off" android:paddingLeft="10dp" android:paddingRight="10dp"
         android:onClick="onOffClicked" />
-
-    <SeekBar
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/brightnessBar" />
+        android:layout_height="wrap_content">
+        <ImageView
+            android:layout_height="25dp"
+            android:layout_width="25dp"
+            android:src="@drawable/brightness_low"
+            />
+        <SeekBar
+            android:layout_weight=".80"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/brightnessBar" />
+
+        <ImageView
+            android:layout_height="25dp"
+            android:layout_width="25dp"
+            android:src="@drawable/brightness_high"
+            />
+
+    </LinearLayout>
+
 
 </LinearLayout>
