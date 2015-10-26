@@ -19,6 +19,7 @@ import com.google.android.gms.wearable.Wearable;
 import huewear.common.MessagePaths;
 
 public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnSeekBarChangeListener {
+	public static final String TAG = "MainActivity";
 	private GoogleApiClient mGoogleApiClient;
 	private SeekBar mBrightnessBar;
 	private static final int MAX_BRIGHTNESS = 254;
@@ -60,16 +61,17 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
 	@Override
 	public void onConnected(Bundle bundle) {
-		Log.d("test", "onConnected");
+		Log.d(TAG, "onConnected");
 	}
 
 	@Override
 	public void onConnectionSuspended(int i) {
+		Log.d(TAG, "onConnectionSuspended");
 	}
 
 	@Override
 	public void onConnectionFailed(ConnectionResult connectionResult) {
-		Log.e("test", "Failed to connect to Google API Client");
+		Log.e(TAG, "Failed to connect to Google API Client");
 	}
 
 	public void sendMessage(String path){
@@ -87,18 +89,15 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 					for(Node node : nodes.getNodes()) {
 						MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), pathLocation, msgVal.getBytes()).await();
 						if(!result.getStatus().isSuccess()){
-							Log.e("test", "error");
-							//showToast("RANDOM error");
+							Log.e(TAG, "error");
 						} else {
-							Log.i("test", "success!! sent to: " + node.getDisplayName());
-							//showToast("RANDOM SENT");
+							Log.i(TAG, "success!! sent to: " + node.getDisplayName());
 						}
 					}
 				}
 			}).start();
-
 		} else {
-			Log.e("test", "not connected");
+			Log.e(TAG, "not connected");
 		}
 	}
 
@@ -106,10 +105,9 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		this.sendMessage(MessagePaths.LIGHTS_RANDOM);
 	}
 
-	public void onOffClicked(View target){
-		this.sendMessage(MessagePaths.LIGHTS_OFF);
-	}
+	public void onOffClicked(View target){ this.sendMessage(MessagePaths.LIGHTS_OFF); }
 
+	//SeekBar methods
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress,
 								  boolean fromUser) {
@@ -117,7 +115,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
 	@Override
 	public void onStartTrackingTouch(SeekBar seekBar) {
-
 	}
 
 	@Override
@@ -128,12 +125,10 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		this.sendMessage(MessagePaths.LIGHTS_BRIGTHNESS, String.valueOf(newVal));
 	}
 
-
 	public void showToast(final String toast)
 	{
 		runOnUiThread(new Runnable() {
-			public void run()
-			{
+			public void run() {
 				Toast.makeText(MainActivity.this, toast, Toast.LENGTH_SHORT).show();
 			}
 		});

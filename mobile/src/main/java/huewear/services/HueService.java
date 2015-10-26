@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Random;
 
 import huewear.common.MessagePaths;
+import huewear.models.HueSharedPreferences;
 import huewear.models.PHAccessPointParcelable;
 
 /**
@@ -42,6 +43,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 	private static final int MAX_HUE=65535;
 
 	public static final String ACTION_CONNECT = "connect";
+	public static final String ACTION_RECONNECT = "reconnect";
 	public static final String ACTION_DISCONNECT = "disconnect";
 	public static final String ACTION_SEARCH = "doBridgeSearch";
 	public static final String ACTION_RANDOM = MessagePaths.LIGHTS_RANDOM;
@@ -70,8 +72,6 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 	private PHHueSDK phHueSDK;
 
 	private LocalBroadcastManager manager;
-
-	private Looper mServiceLooper;
 	private ServiceHandler mServiceHandler;
 
 	// Handler that receives messages from the thread
@@ -98,7 +98,12 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 					PHAccessPoint point = b.getParcelable(ACCESS_POINT_EXTRA);
 					connect(point);
 					break;
+				case ACTION_RECONNECT:
+					mConnectIds.add(msg.arg1);
+					reconnectWithLast();
+					break;
 				case ACTION_DISCONNECT:
+					mConnectIds.add(msg.arg1);
 					disconnect();
 					break;
 				case ACTION_OFF:
@@ -124,6 +129,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		thread.start();
 
 		// Get the HandlerThread's Looper and use it for our Handler
+		Looper mServiceLooper;
 		mServiceLooper = thread.getLooper();
 		mServiceHandler = new ServiceHandler(mServiceLooper);
 
@@ -149,8 +155,12 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 
 		Bundle b = new Bundle();
 		b.putString(COMMAND, intent.getAction());
-		b.putParcelable(ACCESS_POINT_EXTRA, intent.getParcelableExtra(ACCESS_POINT_EXTRA));
-		b.putString(WATCH_MESSAGE_EXTRA, intent.getStringExtra(WATCH_MESSAGE_EXTRA));
+		if (intent.hasExtra(ACCESS_POINT_EXTRA)){
+			b.putParcelable(ACCESS_POINT_EXTRA, intent.getParcelableExtra(ACCESS_POINT_EXTRA));
+		}
+		if (intent.hasExtra(WATCH_MESSAGE_EXTRA)){
+			b.putString(WATCH_MESSAGE_EXTRA, intent.getStringExtra(WATCH_MESSAGE_EXTRA));
+		}
 		Message msg = mServiceHandler.obtainMessage();
 		msg.arg1 = startId;
 		msg.setData(b);
@@ -186,6 +196,20 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		sm.search(true, true);
 	}
 
+	private void reconnectWithLast(){
+		HueSharedPreferences prefs = HueSharedPreferences.getInstance(getApplicationContext());
+		String lastIpAddress = prefs.getLastConnectedIPAddress();
+		String lastUsername = prefs.getUsername();
+
+		// Automatically try to connect to the last connected IP Address.  For multiple bridge support a different implementation is required.
+		if (lastIpAddress !=null && !lastIpAddress.equals("")) {
+			PHAccessPoint lastAccessPoint = new PHAccessPoint();
+			lastAccessPoint.setIpAddress(lastIpAddress);
+			lastAccessPoint.setUsername(lastUsername);
+			connect(lastAccessPoint);
+		}
+	}
+
 	private void connect(PHAccessPoint lastAccessPoint){
 		if (!phHueSDK.isAccessPointConnected(lastAccessPoint)) {
 			phHueSDK.connect(lastAccessPoint);
@@ -205,20 +229,18 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 	private void randomLights() {
 		Log.i(TAG, "randomLights");
 		PHBridge bridge = phHueSDK.getSelectedBridge();
+		if (bridge != null){
+			List<PHLight> allLights = bridge.getResourceCache().getAllLights();
+			Random rand = new Random();
 
-		List<PHLight> allLights = bridge.getResourceCache().getAllLights();
-		Random rand = new Random();
-
-		for (PHLight light : allLights) {
-			PHLightState lightState = new PHLightState();
-			lightState.setOn(true);
-			lightState.setHue(rand.nextInt(MAX_HUE));
-			// To validate your lightstate is valid (before sending to the bridge) you can use:
-			// String validState = lightState.validateState();
-			bridge.updateLightState(light, lightState, this);
-			//  bridge.updateLightState(light, lightState);   // If no bridge response is required then use this simpler form.
+			for (PHLight light : allLights) {
+				PHLightState lightState = new PHLightState();
+				lightState.setOn(true);
+				lightState.setHue(rand.nextInt(MAX_HUE));
+				bridge.updateLightState(light, lightState, this);
+			}
+			stopServices(mLightControlIds);
 		}
-		stopServices(mLightControlIds);
 	}
 
 	private void lightsOff() {
@@ -230,10 +252,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		for (PHLight light : allLights) {
 			PHLightState lightState = new PHLightState();
 			lightState.setOn(false);
-			// To validate your lightstate is valid (before sending to the bridge) you can use:
-			// String validState = lightState.validateState();
 			bridge.updateLightState(light, lightState, this);
-			//  bridge.updateLightState(light, lightState);   // If no bridge response is required then use this simpler form.
 		}
 		stopServices(mLightControlIds);
 	}
