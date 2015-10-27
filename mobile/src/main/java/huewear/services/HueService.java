@@ -26,11 +26,14 @@ import com.philips.lighting.model.PHLight;
 import com.philips.lighting.model.PHLightState;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Random;
 
 import huewear.common.MessagePaths;
+import huewear.models.HueCommand;
 import huewear.models.HueSharedPreferences;
 import huewear.models.PHAccessPointParcelable;
 
@@ -62,6 +65,8 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 
 	private static final String COMMAND = "HueService.command";
 
+	private Queue<HueCommand> mHueCommands;
+
 	// These store IDs to running services so they can be stopped when their callback runs
 	private List<Integer> mAllIds; //some Hue callbacks can't tell which it was called from- stop all
 	private List<Integer> mLightControlIds;
@@ -79,45 +84,17 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		public ServiceHandler(Looper looper) {
 			super(looper);
 		}
+
 		@Override
 		public void handleMessage(Message msg) {
 			Bundle b = msg.getData();
 			String command = b.getString(COMMAND);
-			mAllIds.add(msg.arg1);
-			switch(command){
-				case ACTION_RANDOM:
-					mLightControlIds.add(msg.arg1);
-					randomLights();
-					break;
-				case ACTION_SEARCH:
-					mSearchIds.add(msg.arg1);
-					doBridgeSearch();
-					break;
-				case ACTION_CONNECT:
-					mConnectIds.add(msg.arg1);
-					PHAccessPoint point = b.getParcelable(ACCESS_POINT_EXTRA);
-					connect(point);
-					break;
-				case ACTION_RECONNECT:
-					mConnectIds.add(msg.arg1);
-					reconnectWithLast();
-					break;
-				case ACTION_DISCONNECT:
-					mConnectIds.add(msg.arg1);
-					disconnect();
-					break;
-				case ACTION_OFF:
-					mLightControlIds.add(msg.arg1);
-					lightsOff();
-					break;
-				case ACTION_BRIGHTNESS:
-					mLightControlIds.add(msg.arg1);
-					String amt = b.getString(WATCH_MESSAGE_EXTRA);
-					adjustBrightness(Integer.parseInt(amt));
-					break;
-				default:
-					Log.i(TAG, "non-matching command"+command);
-					stopSelf(msg.arg1);
+			HueCommand hueCommand = new HueCommand(msg.arg1, command, b);
+			mHueCommands.add(hueCommand);
+			if (phHueSDK.getSelectedBridge() == null){
+				reconnectWithLast();
+			}else {
+				processQueue(mHueCommands);
 			}
 		}
 	}
@@ -146,6 +123,8 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		// Register the PHSDKListener to receive callbacks from the bridge.
 		phHueSDK.getNotificationManager().registerSDKListener(this);
 		manager = LocalBroadcastManager.getInstance(this);
+
+		mHueCommands = new LinkedList<HueCommand>();
 	}
 
 	@Override
@@ -188,6 +167,55 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 			stopSelf(i);
 		}
 		ids.clear();
+	}
+
+	private void processQueue(Queue<HueCommand> hueCommands){
+		while(true){
+			HueCommand hueCommand = hueCommands.poll();
+			if (hueCommand == null){
+				break;
+			}else {
+				int startId = hueCommand.getStartId();
+				String command = hueCommand.getCommand();
+
+				mAllIds.add(startId);
+				switch(command){
+					case ACTION_RANDOM:
+						mLightControlIds.add(startId);
+						randomLights();
+						break;
+					case ACTION_SEARCH:
+						mSearchIds.add(startId);
+						doBridgeSearch();
+						break;
+					case ACTION_CONNECT:
+						mConnectIds.add(startId);
+						PHAccessPoint point = hueCommand.getArgs().getParcelable(ACCESS_POINT_EXTRA);
+						connect(point);
+						break;
+					case ACTION_RECONNECT:
+						mConnectIds.add(startId);
+						reconnectWithLast();
+						break;
+					case ACTION_DISCONNECT:
+						mConnectIds.add(startId);
+						disconnect();
+						break;
+					case ACTION_OFF:
+						mLightControlIds.add(startId);
+						lightsOff();
+						break;
+					case ACTION_BRIGHTNESS:
+						mLightControlIds.add(startId);
+						String amt = hueCommand.getArgs().getString(WATCH_MESSAGE_EXTRA);
+						adjustBrightness(Integer.parseInt(amt));
+						break;
+					default:
+						Log.i(TAG, "non-matching command"+command);
+						stopSelf(startId);
+				}
+			}
+		}
 	}
 
 	private void doBridgeSearch() {
@@ -297,6 +325,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		intent.putExtra(CONNECT_IP, b.getResourceCache().getBridgeConfiguration().getIpAddress());
 		manager.sendBroadcast(intent);
 		stopServices(mConnectIds);
+		processQueue(mHueCommands);
 	}
 
 	@Override
