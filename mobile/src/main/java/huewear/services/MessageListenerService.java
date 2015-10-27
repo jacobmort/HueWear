@@ -25,7 +25,7 @@ public class MessageListenerService extends WearableListenerService {
 
 	@Override
 	public void onMessageReceived(MessageEvent messageEvent) {
-		System.out.println("service watch message1");
+		System.out.println("service watch message");
 		Intent serviceIntent = new Intent(MessageListenerService.this, HueService.class);
 		serviceIntent.setAction(messageEvent.getPath());
 		String val = new String(messageEvent.getData());

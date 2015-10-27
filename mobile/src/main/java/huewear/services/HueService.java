@@ -25,7 +25,6 @@ import com.philips.lighting.model.PHHueParsingError;
 import com.philips.lighting.model.PHLight;
 import com.philips.lighting.model.PHLightState;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -67,11 +66,6 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 
 	private Queue<HueCommand> mHueCommands;
 
-	// These store IDs to running services so they can be stopped when their callback runs
-	private List<Integer> mAllIds; //some Hue callbacks can't tell which it was called from- stop all
-	private List<Integer> mLightControlIds;
-	private List<Integer> mSearchIds;
-	private List<Integer> mConnectIds;
 
 	private boolean lastSearchWasIPScan = false;
 	private PHHueSDK phHueSDK;
@@ -110,11 +104,6 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		mServiceLooper = thread.getLooper();
 		mServiceHandler = new ServiceHandler(mServiceLooper);
 
-		mAllIds = new ArrayList<Integer>();
-		mLightControlIds = new ArrayList<Integer>();
-		mSearchIds = new ArrayList<Integer>();
-		mConnectIds = new ArrayList<Integer>();
-
 		phHueSDK = PHHueSDK.create();
 		// Set the Device Name (name of your app). This will be stored in your bridge whitelist entry.
 		phHueSDK.setAppName("HueWear");
@@ -129,9 +118,6 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		// For each start request, send a message to start a job and deliver the
-		// start ID so we know which request we're stopping when we finish the job
-
 		Bundle b = new Bundle();
 		b.putString(COMMAND, intent.getAction());
 		if (intent.hasExtra(ACCESS_POINT_EXTRA)){
@@ -146,7 +132,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 
 		mServiceHandler.sendMessage(msg);
 		// If we get killed, after returning from here, restart
-		return START_REDELIVER_INTENT;
+		return START_NOT_STICKY;
 	}
 
 	@Override
@@ -162,13 +148,6 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		phHueSDK.disableAllHeartbeat();
 	}
 
-	private void stopServices(List<Integer> ids){
-		for (int i : ids){
-			stopSelf(i);
-		}
-		ids.clear();
-	}
-
 	private void processQueue(Queue<HueCommand> hueCommands){
 		while(true){
 			HueCommand hueCommand = hueCommands.poll();
@@ -178,41 +157,32 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 				int startId = hueCommand.getStartId();
 				String command = hueCommand.getCommand();
 
-				mAllIds.add(startId);
 				switch(command){
 					case ACTION_RANDOM:
-						mLightControlIds.add(startId);
 						randomLights();
 						break;
 					case ACTION_SEARCH:
-						mSearchIds.add(startId);
 						doBridgeSearch();
 						break;
 					case ACTION_CONNECT:
-						mConnectIds.add(startId);
 						PHAccessPoint point = hueCommand.getArgs().getParcelable(ACCESS_POINT_EXTRA);
 						connect(point);
 						break;
 					case ACTION_RECONNECT:
-						mConnectIds.add(startId);
 						reconnectWithLast();
 						break;
 					case ACTION_DISCONNECT:
-						mConnectIds.add(startId);
 						disconnect();
 						break;
 					case ACTION_OFF:
-						mLightControlIds.add(startId);
 						lightsOff();
 						break;
 					case ACTION_BRIGHTNESS:
-						mLightControlIds.add(startId);
 						String amt = hueCommand.getArgs().getString(WATCH_MESSAGE_EXTRA);
 						adjustBrightness(Integer.parseInt(amt));
 						break;
 					default:
 						Log.i(TAG, "non-matching command"+command);
-						stopSelf(startId);
 				}
 			}
 		}
@@ -267,7 +237,6 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 				lightState.setHue(rand.nextInt(MAX_HUE));
 				bridge.updateLightState(light, lightState, this);
 			}
-			stopServices(mLightControlIds);
 		}
 	}
 
@@ -282,7 +251,6 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 			lightState.setOn(false);
 			bridge.updateLightState(light, lightState, this);
 		}
-		stopServices(mLightControlIds);
 	}
 
 	private void adjustBrightness(int val){
@@ -308,7 +276,6 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 			intent.putParcelableArrayListExtra(POINTS_FOUND, PHAccessPointParcelable.convert(phHueSDK.getAccessPointsFound()));
 			manager.sendBroadcast(intent);
 		}
-		stopServices(mSearchIds);
 	}
 
 	@Override
@@ -324,7 +291,6 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		Intent intent = new Intent(CONNECT_SUCCESS);
 		intent.putExtra(CONNECT_IP, b.getResourceCache().getBridgeConfiguration().getIpAddress());
 		manager.sendBroadcast(intent);
-		stopServices(mConnectIds);
 		processQueue(mHueCommands);
 	}
 
@@ -353,7 +319,6 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		if (!phHueSDK.getDisconnectedAccessPoint().contains(accessPoint)) {
 			phHueSDK.getDisconnectedAccessPoint().add(accessPoint);
 		}
-		stopServices(mAllIds);
 	}
 
 	@Override
@@ -383,7 +348,6 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 			intent.putExtra(ERROR, error);
 			manager.sendBroadcast(intent);
 		}
-		stopServices(mAllIds);
 	}
 
 	@Override
@@ -394,7 +358,6 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		Intent intent = new Intent(ERROR);
 		intent.putExtra(ERROR, "ParsingError");
 		manager.sendBroadcast(intent);
-		stopServices(mAllIds);
 	}
 
 
@@ -403,13 +366,11 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 	public void onSuccess() {
 		Intent intent = new Intent(LIGHT_SUCCESS);
 		manager.sendBroadcast(intent);
-		stopServices(mAllIds);
 	}
 
 	@Override
 	public void onStateUpdate(Map<String, String> arg0, List<PHHueError> arg1) {
-		Log.w(TAG, "Light has updated");
-		stopServices(mLightControlIds);
+		//Log.w(TAG, "Light has updated");
 	}
 
 	@Override
