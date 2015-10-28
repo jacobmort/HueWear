@@ -14,7 +14,6 @@ import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -37,18 +36,23 @@ public class BridgeActivityFragment extends Fragment implements AdapterView.OnIt
 	private BroadcastReceiver  mMessageReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			String action = intent.getAction();
-			if (action.equals(HueService.CONNECT_AUTH)){
-				hideSpinner();
-				connected = true;
-				Toast.makeText(getActivity(), R.string.press_pushlink_button, Toast.LENGTH_SHORT).show();
-			}else if(action.equals(HueService.POINTS_FOUND)) {
-				hideSpinner();
-				mLinkPrompt.setVisibility(View.INVISIBLE);
-				mBridgeList.setVisibility(View.VISIBLE);
-				ArrayList<PHAccessPointParcelable> points = intent.getParcelableArrayListExtra(HueService.POINTS_FOUND);
-				mAdapter.updateData(points);
-			}
+		String action = intent.getAction();
+		if (action.equals(HueService.CONNECT_AUTH)){
+			hideSpinner();
+			connected = true;
+		}else if(action.equals(HueService.POINTS_FOUND)) {
+			hideSpinner();
+			mLinkPrompt.setVisibility(View.INVISIBLE);
+			mBridgeList.setVisibility(View.VISIBLE);
+			ArrayList<PHAccessPointParcelable> points = intent.getParcelableArrayListExtra(HueService.POINTS_FOUND);
+			mAdapter.updateData(points);
+		}else if (action.equals(HueService.DISCONNECT)) {
+			connected = false;
+			showPushLinkView();
+			Intent serviceIntent = new Intent(getActivity(), HueService.class);
+			serviceIntent.setAction(HueService.ACTION_SEARCH);
+			getActivity().startService(serviceIntent);
+		}
 		}
 	};
 
@@ -87,23 +91,10 @@ public class BridgeActivityFragment extends Fragment implements AdapterView.OnIt
 
 	private void setupHue() {
 		// Try to automatically connect to the last known bridge.  For first time use this will be empty so a bridge search is automatically started.
-		HueSharedPreferences prefs = HueSharedPreferences.getInstance(getActivity().getApplicationContext());
-		String lastIpAddress   = prefs.getLastConnectedIPAddress();
-		String lastUsername    = prefs.getUsername();
-
 		this.showSpinner();
-		// Automatically try to connect to the last connected IP Address.  For multiple bridge support a different implementation is required.
-		if (lastIpAddress !=null && !lastIpAddress.equals("")) {
-			Intent serviceIntent = new Intent(getActivity(), HueService.class);
-			serviceIntent.setAction(HueService.ACTION_RECONNECT);
-			getActivity().startService(serviceIntent);
-		}
-		else {  // First time use, so perform a bridge search.
-			showPushLinkView();
-			Intent serviceIntent = new Intent(getActivity(), HueService.class);
-			serviceIntent.setAction(HueService.ACTION_SEARCH);
-			getActivity().startService(serviceIntent);
-		}
+		Intent serviceIntent = new Intent(getActivity(), HueService.class);
+		serviceIntent.setAction(HueService.ACTION_RECONNECT);
+		getActivity().startService(serviceIntent);
 	}
 
 	public void hideSpinner(){
@@ -125,16 +116,10 @@ public class BridgeActivityFragment extends Fragment implements AdapterView.OnIt
 
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		HueSharedPreferences prefs = HueSharedPreferences.getInstance(getActivity().getApplicationContext());
 		PHAccessPointParcelable accessPoint = (PHAccessPointParcelable) mAdapter.getItem(position);
+		HueSharedPreferences prefs = HueSharedPreferences.getInstance(getActivity().getApplicationContext());
 		accessPoint.setUsername(prefs.getUsername());
 		this.showSpinner();
-		if (connected) {
-			Intent serviceIntent = new Intent(getActivity(), HueService.class);
-			serviceIntent.setAction(HueService.ACTION_DISCONNECT);
-			getActivity().startService(serviceIntent);
-			connected = false;
-		}
 
 		Intent serviceIntent = new Intent(getActivity(), HueService.class);
 		serviceIntent.setAction(HueService.ACTION_CONNECT);

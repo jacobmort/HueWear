@@ -78,12 +78,11 @@ public class MainActivity extends AppCompatActivity {
 		switch (item.getItemId()) {
 			case R.id.find_new_bridge:
 				FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+				Intent serviceIntent = new Intent(this, HueService.class);
+				serviceIntent.setAction(HueService.DISCONNECT);
+				startService(serviceIntent);
 				transaction.replace(R.id.container, mBridgeFragment, "first");
 				transaction.commit();
-				mBridgeFragment.showPushLinkView();
-				Intent serviceIntent = new Intent(this, HueService.class);
-				serviceIntent.setAction(HueService.ACTION_SEARCH);
-				startService(serviceIntent);
 				break;
 		}
 		return true;

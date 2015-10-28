@@ -85,7 +85,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 			String command = b.getString(COMMAND);
 			HueCommand hueCommand = new HueCommand(msg.arg1, command, b);
 			mHueCommands.add(hueCommand);
-			if (phHueSDK.getSelectedBridge() == null){
+			if (phHueSDK.getSelectedBridge() == null && !hueCommand.getCommand().equals(HueService.ACTION_CONNECT) && !hueCommand.getCommand().equals(HueService.ACTION_SEARCH)){
 				reconnectWithLast();
 			}else {
 				processQueue(mHueCommands);
@@ -182,7 +182,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 						adjustBrightness(Integer.parseInt(amt));
 						break;
 					default:
-						Log.i(TAG, "non-matching command"+command);
+						Log.i(TAG, "non-matching command" + command);
 				}
 			}
 		}
@@ -205,6 +205,9 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 			lastAccessPoint.setIpAddress(lastIpAddress);
 			lastAccessPoint.setUsername(lastUsername);
 			connect(lastAccessPoint);
+		} else {
+			Intent intent = new Intent(DISCONNECT);
+			manager.sendBroadcast(intent);
 		}
 	}
 
@@ -222,6 +225,8 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		}
 		Intent intent = new Intent(DISCONNECT);
 		manager.sendBroadcast(intent);
+		HueSharedPreferences prefs = HueSharedPreferences.getInstance(getApplicationContext());
+		prefs.reset();
 	}
 
 	private void randomLights() {

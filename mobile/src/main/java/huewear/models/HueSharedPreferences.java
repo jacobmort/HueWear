@@ -14,12 +14,10 @@ public class HueSharedPreferences {
     private SharedPreferences mSharedPreferences = null;
     
     private Editor mSharedPreferencesEditor = null;
-    
-    
+
     public void create() {
-      
     }
-    
+
     public static HueSharedPreferences getInstance(Context ctx) {
         if (instance == null) {
             instance = new HueSharedPreferences(ctx);
@@ -31,8 +29,7 @@ public class HueSharedPreferences {
         mSharedPreferences = appContext.getSharedPreferences(HUE_SHARED_PREFERENCES_STORE, 0); // 0 - for private mode
         mSharedPreferencesEditor = mSharedPreferences.edit();
     }
-    
-    
+
     public String getUsername() {
          String username = mSharedPreferences.getString(LAST_CONNECTED_USERNAME, "");
          if (username==null || username.equals("")) {
@@ -49,10 +46,19 @@ public class HueSharedPreferences {
     
     public String getLastConnectedIPAddress() {
         return mSharedPreferences.getString(LAST_CONNECTED_IP, "");
-   }
+    }
 
-   public boolean setLastConnectedIPAddress(String ipAddress) {
+    public boolean setLastConnectedIPAddress(String ipAddress) {
        mSharedPreferencesEditor.putString(LAST_CONNECTED_IP, ipAddress);
        return (mSharedPreferencesEditor.commit());
-   }
+    }
+
+    public void reset() {
+        setUsername(null);
+        setLastConnectedIPAddress(null);
+    }
+
+
+
+
 }

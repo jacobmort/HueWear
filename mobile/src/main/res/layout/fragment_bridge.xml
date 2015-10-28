@@ -24,14 +24,6 @@
             android:visibility="gone"
             android:layout_gravity="center"
             android:layout_marginRight="5dp" />
-        <TextView
-            android:id="@+id/empty_list_view"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="@string/no_bridge"
-            />
 
         <ListView
             android:id="@+id/bridge_list"
