@@ -4,4 +4,6 @@
     <string name="hello_square">Hello Square World!</string>
     <string name="btn_random">Random Lights</string>
     <string name="btn_off">Lights Out</string>
+    <string name="brightness_low">low brightness</string>
+    <string name="brightness_high">high brightness</string>
 </resources>
