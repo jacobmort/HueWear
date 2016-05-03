@@ -11,18 +11,29 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
-import huewear.common.MessagePaths;
+import java.util.List;
 
-public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnSeekBarChangeListener {
+import huewear.common.MessagePaths;
+import huewear.common.PHLightStateParcelable;
+
+public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, DataApi.DataListener, OnSeekBarChangeListener {
 	public static final String TAG = "MainActivity";
 	private GoogleApiClient mGoogleApiClient;
 	private SeekBar mBrightnessBar;
 	private static final int MAX_BRIGHTNESS = 254;
+
+	private List<PHLightStateParcelable> mLights;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +53,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 				.addOnConnectionFailedListener(this)
 				.build();
 		mGoogleApiClient.connect();
-
 	}
 
 	@Override
@@ -62,6 +72,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 	@Override
 	public void onConnected(Bundle bundle) {
 		Log.d(TAG, "onConnected");
+		sendMessage(MessagePaths.GET_LIGHTS);
 	}
 
 	@Override
@@ -101,11 +112,33 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		}
 	}
 
+	@Override
+	public void onDataChanged(DataEventBuffer dataEvents) {
+		Log.i(TAG, "onDataChanged");
+		for (DataEvent event : dataEvents) {
+			if (event.getType() == DataEvent.TYPE_CHANGED) {
+				// DataItem changed
+				DataItem item = event.getDataItem();
+				if (item.getUri().getPath().compareTo(MessagePaths.LIGHTS_STATUS) == 0) {
+					DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
+				}
+			} else if (event.getType() == DataEvent.TYPE_DELETED) {
+				// DataItem deleted
+			}
+		}
+	}
+
 	public void onRandomClicked(View target){
 		this.sendMessage(MessagePaths.LIGHTS_RANDOM);
 	}
 
 	public void onOffClicked(View target){ this.sendMessage(MessagePaths.LIGHTS_OFF); }
+
+	public void onPowerClicked(View target){
+		for(PHLightStateParcelable light : mLights){
+			light.setOn(!light.isOn());
+		}
+	}
 
 	//SeekBar methods
 	@Override

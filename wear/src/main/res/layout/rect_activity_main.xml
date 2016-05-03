@@ -3,47 +3,101 @@
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:orientation="vertical"
+              android:background="#00000000"
               tools:context=".MainActivity"
               tools:deviceIds="wear_square">
 
-    <Button
-        android:id="@+id/buttonRand"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="@string/btn_random" android:paddingLeft="10dp" android:paddingRight="10dp"
-        android:onClick="onRandomClicked" />
-
-    <Button
-        android:id="@+id/buttonOff"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="@string/btn_off" android:paddingLeft="10dp" android:paddingRight="10dp"
-        android:onClick="onOffClicked" />
     <LinearLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <ImageView
-            android:contentDescription="@string/brightness_low"
-            android:layout_height="25dp"
-            android:layout_width="25dp"
-            android:src="@drawable/brightness_low"
-            />
-        <SeekBar
-            android:layout_weight=".80"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/brightnessBar" />
+        android:layout_height="match_parent"
+        android:background="#55000000"
+        android:layout_margin="20dp"
+        android:orientation="vertical"
+        >
 
-        <ImageView
-            android:contentDescription="@string/brightness_high"
-            android:layout_height="25dp"
-            android:layout_width="25dp"
-            android:src="@drawable/brightness_high"
-            />
+        <ImageButton
+            android:id="@+id/buttonOff"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginTop="5dp"
+            android:contentDescription="@string/btn_off"
+            android:drawable="@drawable/lights_on"
+            android:layout_gravity="center"
+            android:onClick="onOffClicked" />
+
+        <ImageButton
+            android:id="@+id/buttonRand"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginTop="5dp"
+            android:drawable="@drawable/lights_random"
+            android:contentDescription="@string/btn_random"
+            android:layout_gravity="center"
+            android:onClick="onRandomClicked" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:contentDescription="@string/brightness_low"
+                android:layout_height="25dp"
+                android:layout_width="25dp"
+                android:src="@drawable/brightness_low"
+                />
+            <SeekBar
+                android:layout_weight=".80"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/brightnessBar" />
+            <ImageView
+                android:contentDescription="@string/brightness_high"
+                android:layout_height="25dp"
+                android:layout_width="25dp"
+                android:src="@drawable/brightness_high"
+                />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:text="R"/>
+            <SeekBar
+                android:layout_weight=".80"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/redBar" />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:text="G"/>
+            <SeekBar
+                android:layout_weight=".80"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/greenBar" />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:text="B"/>
+            <SeekBar
+                android:layout_weight=".80"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/blueBar" />
+        </LinearLayout>
     </LinearLayout>
-
 </LinearLayout>

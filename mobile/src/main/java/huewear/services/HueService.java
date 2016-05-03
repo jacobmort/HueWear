@@ -25,6 +25,7 @@ import com.philips.lighting.model.PHHueParsingError;
 import com.philips.lighting.model.PHLight;
 import com.philips.lighting.model.PHLightState;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,7 @@ import huewear.common.MessagePaths;
 import huewear.models.HueCommand;
 import huewear.models.HueSharedPreferences;
 import huewear.models.PHAccessPointParcelable;
+import huewear.common.PHLightStateParcelable;
 
 /**
  * Created by jacob on 7/19/15.
@@ -51,6 +53,7 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 	public static final String ACTION_RANDOM = MessagePaths.LIGHTS_RANDOM;
 	public static final String ACTION_OFF = MessagePaths.LIGHTS_OFF;
 	public static final String ACTION_BRIGHTNESS = MessagePaths.LIGHTS_BRIGTHNESS;
+	public static final String ACTION_GET_LIGHTS = MessagePaths.GET_LIGHTS;
 
 	public static final String POINTS_FOUND = "points_found";
 	public static final String LIGHT_SUCCESS = "light.success";
@@ -61,11 +64,11 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 	public static final String ERROR = "error";
 	public static final String ACCESS_POINT_EXTRA = "access_point_extra";
 	public static final String WATCH_MESSAGE_EXTRA = "WATCH_MESSAGE_EXTRA";
+	public static final String LIGHTS_STATUS="LIGHTS_STATUS";
 
 	private static final String COMMAND = "HueService.command";
 
 	private Queue<HueCommand> mHueCommands;
-
 
 	private boolean lastSearchWasIPScan = false;
 	private PHHueSDK phHueSDK;
@@ -181,6 +184,9 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 						String amt = hueCommand.getArgs().getString(WATCH_MESSAGE_EXTRA);
 						adjustBrightness(Integer.parseInt(amt));
 						break;
+					case ACTION_GET_LIGHTS:
+						getLights();
+						break;
 					default:
 						Log.i(TAG, "non-matching command" + command);
 				}
@@ -218,15 +224,40 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 	}
 
 	public void disconnect(){
-		String connectedIP = phHueSDK.getSelectedBridge().getResourceCache().getBridgeConfiguration().getIpAddress();
-		if (connectedIP != null) {   // We are already connected here:-
-			phHueSDK.disableHeartbeat(phHueSDK.getSelectedBridge());
-			phHueSDK.disconnect(phHueSDK.getSelectedBridge());
+		if (phHueSDK.getSelectedBridge() != null){
+			String connectedIP = phHueSDK.getSelectedBridge().getResourceCache().getBridgeConfiguration().getIpAddress();
+			if (connectedIP != null) {   // We are already connected here:-
+				phHueSDK.disableHeartbeat(phHueSDK.getSelectedBridge());
+				phHueSDK.disconnect(phHueSDK.getSelectedBridge());
+			}
 		}
 		Intent intent = new Intent(DISCONNECT);
 		manager.sendBroadcast(intent);
 		HueSharedPreferences prefs = HueSharedPreferences.getInstance(getApplicationContext());
 		prefs.reset();
+	}
+
+	private void getLights() {
+		PHBridge bridge = phHueSDK.getSelectedBridge();
+		ArrayList<PHLightStateParcelable> lightStates = new ArrayList<>();
+		List<PHLight> lights;
+		if (bridge != null){
+			lights = bridge.getResourceCache().getAllLights();
+		}else{
+			lights = new ArrayList<PHLight>();
+		}
+
+		for (PHLight light : lights){
+			lightStates.add(new PHLightStateParcelable(light.getLastKnownLightState()));
+		}
+
+//		Intent intent = new Intent(LIGHTS_STATUS);
+//		intent.putParcelableArrayListExtra(LIGHTS_STATUS, lightStates);
+//		manager.sendBroadcast(intent);
+		Intent serviceIntent = new Intent(HueService.this, DataService.class);
+		serviceIntent.setAction(ACTION_GET_LIGHTS);
+		serviceIntent.putParcelableArrayListExtra(LIGHTS_STATUS, lightStates);
+		startService(serviceIntent);
 	}
 
 	private void randomLights() {
@@ -249,8 +280,6 @@ public class HueService extends Service implements PHSDKListener, PHLightListene
 		Log.i(TAG, "lightsOff");
 		PHBridge bridge = phHueSDK.getSelectedBridge();
 		List<PHLight> allLights = bridge.getResourceCache().getAllLights();
-		Random rand = new Random();
-
 		for (PHLight light : allLights) {
 			PHLightState lightState = new PHLightState();
 			lightState.setOn(false);

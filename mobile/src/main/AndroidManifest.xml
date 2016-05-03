@@ -21,5 +21,6 @@
             </intent-filter>
         </service>
         <service android:name="huewear.services.HueService" />
+        <service android:name="huewear.services.DataService" />
     </application>
 </manifest>

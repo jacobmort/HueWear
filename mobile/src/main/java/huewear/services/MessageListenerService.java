@@ -16,16 +16,18 @@ public class MessageListenerService extends WearableListenerService {
 	@Override
 	public void onPeerConnected(Node peer) {
 		super.onPeerConnected(peer);
-
 		String id = peer.getId();
 		String name = peer.getDisplayName();
-
 		Log.d(TAG, "Connected peer name & ID: " + name + "|" + id);
+		Intent serviceIntent = new Intent(MessageListenerService.this, HueService.class);
+		serviceIntent.setAction(HueService.ACTION_GET_LIGHTS);
+		serviceIntent.putExtra(HueService.WATCH_MESSAGE_EXTRA, "");
+		startService(serviceIntent);
 	}
 
 	@Override
 	public void onMessageReceived(MessageEvent messageEvent) {
-		System.out.println("service watch message");
+		System.out.println("service watch message:"+messageEvent.getPath());
 		Intent serviceIntent = new Intent(MessageListenerService.this, HueService.class);
 		serviceIntent.setAction(messageEvent.getPath());
 		String val = new String(messageEvent.getData());
