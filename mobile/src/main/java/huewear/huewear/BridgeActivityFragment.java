@@ -36,23 +36,23 @@ public class BridgeActivityFragment extends Fragment implements AdapterView.OnIt
 	private BroadcastReceiver  mMessageReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-		String action = intent.getAction();
-		if (action.equals(HueService.CONNECT_AUTH)){
-			hideSpinner();
-			connected = true;
-		}else if(action.equals(HueService.POINTS_FOUND)) {
-			hideSpinner();
-			mLinkPrompt.setVisibility(View.INVISIBLE);
-			mBridgeList.setVisibility(View.VISIBLE);
-			ArrayList<PHAccessPointParcelable> points = intent.getParcelableArrayListExtra(HueService.POINTS_FOUND);
-			mAdapter.updateData(points);
-		}else if (action.equals(HueService.DISCONNECT)) {
-			connected = false;
-			showPushLinkView();
-			Intent serviceIntent = new Intent(getActivity(), HueService.class);
-			serviceIntent.setAction(HueService.ACTION_SEARCH);
-			getActivity().startService(serviceIntent);
-		}
+			String action = intent.getAction();
+			if (action.equals(HueService.CONNECT_AUTH)){
+				hideSpinner();
+				connected = true;
+			}else if(action.equals(HueService.POINTS_FOUND)) {
+				hideSpinner();
+				mLinkPrompt.setVisibility(View.INVISIBLE);
+				mBridgeList.setVisibility(View.VISIBLE);
+				ArrayList<PHAccessPointParcelable> points = intent.getParcelableArrayListExtra(HueService.POINTS_FOUND);
+				mAdapter.updateData(points);
+			}else if (action.equals(HueService.DISCONNECT)) {
+				connected = false;
+				showPushLinkView();
+				Intent serviceIntent = new Intent(getActivity(), HueService.class);
+				serviceIntent.setAction(HueService.ACTION_SEARCH);
+				getActivity().startService(serviceIntent);
+			}
 		}
 	};
 
